@@ -64,6 +64,7 @@ jobs:
         run: |
           brew tap wgordon17/summon .
           brew update-python-resources summon-claude
+          cp "$(brew formula summon-claude)" Formula/summon-claude.rb
           brew audit --strict summon-claude
 
       - name: Commit and push
