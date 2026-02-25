@@ -55,6 +55,7 @@ jobs:
 
       - name: Generate resource stanzas
         run: |
+          brew untap wgordon17/summon 2>/dev/null || true
           brew tap wgordon17/summon .
           brew update-python-resources summon-claude
 
