@@ -9,6 +9,9 @@ on:
         description: "Version to update to (leave empty for latest)"
         required: false
 
+permissions:
+  contents: write
+
 jobs:
   update:
     runs-on: ubuntu-latest
@@ -58,9 +61,13 @@ jobs:
           brew untap wgordon17/summon 2>/dev/null || true
           brew tap wgordon17/summon .
           brew update-python-resources summon-claude
+          brew untap wgordon17/summon
 
       - name: Homebrew audit
-        run: brew audit --strict summon-claude
+        run: |
+          brew tap wgordon17/summon .
+          brew audit --strict summon-claude
+          brew untap wgordon17/summon
 
       - name: Commit and push
         run: |
@@ -72,4 +79,4 @@ jobs:
             exit 0
           fi
           git commit -m "Update summon-claude to ${{ steps.pypi.outputs.version }}"
-          git push
+          git push origin main
