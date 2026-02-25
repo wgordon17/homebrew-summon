@@ -22,7 +22,7 @@ jobs:
           python-version: "3.12"
 
       - name: Install poet
-        run: pip install homebrew-pypi-poet summon-claude
+        run: pip install setuptools homebrew-pypi-poet summon-claude
 
       - name: Regenerate formula
         run: poet -f summon-claude > Formula/summon-claude.rb
