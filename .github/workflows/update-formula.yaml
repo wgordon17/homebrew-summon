@@ -56,18 +56,12 @@ jobs:
           end
           RUBY
 
-      - name: Generate resource stanzas
+      - name: Tap and generate resources
         run: |
           brew untap wgordon17/summon 2>/dev/null || true
           brew tap wgordon17/summon .
           brew update-python-resources summon-claude
-          brew untap wgordon17/summon
-
-      - name: Homebrew audit
-        run: |
-          brew tap wgordon17/summon .
           brew audit --strict summon-claude
-          brew untap wgordon17/summon
 
       - name: Commit and push
         run: |
