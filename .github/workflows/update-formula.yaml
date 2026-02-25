@@ -60,7 +60,7 @@ jobs:
           brew update-python-resources summon-claude
 
       - name: Homebrew audit
-        run: brew audit --strict Formula/summon-claude.rb
+        run: brew audit --strict summon-claude
 
       - name: Commit and push
         run: |
