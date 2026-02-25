@@ -1,0 +1,46 @@
+name: Update Formula
+
+on:
+  repository_dispatch:
+    types: [pypi-release]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to update to (leave empty for latest)"
+        required: false
+
+jobs:
+  update:
+    runs-on: macos-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install poet
+        run: pip install homebrew-pypi-poet summon-claude
+
+      - name: Regenerate formula
+        run: poet -f summon-claude > Formula/summon-claude.rb
+
+      - name: Homebrew audit
+        run: |
+          brew tap wgordon17/summon .
+          brew audit --strict Formula/summon-claude.rb
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Formula/summon-claude.rb
+          if git diff --cached --quiet; then
+            echo "No changes to formula"
+            exit 0
+          fi
+          VERSION=$(pip show summon-claude | grep Version | cut -d' ' -f2)
+          git commit -m "Update summon-claude to ${VERSION}"
+          git push
