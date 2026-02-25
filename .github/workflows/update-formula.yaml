@@ -16,16 +16,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
-      - name: Install poet
-        run: pip install setuptools homebrew-pypi-poet summon-claude
+      - uses: astral-sh/setup-uv@eac588ad8def6316056a12d4907a9d4d84ff7a3b # v7.3.0
 
       - name: Regenerate formula
-        run: poet -f summon-claude > Formula/summon-claude.rb
+        run: uvx --from homebrew-pypi-poet --with setuptools --with summon-claude poet -f summon-claude > Formula/summon-claude.rb
 
       - name: Homebrew audit
         run: |
@@ -41,6 +35,6 @@ jobs:
             echo "No changes to formula"
             exit 0
           fi
-          VERSION=$(pip show summon-claude | grep Version | cut -d' ' -f2)
+          VERSION=$(uv run --with summon-claude python -c "from importlib.metadata import version; print(version('summon-claude'))")
           git commit -m "Update summon-claude to ${VERSION}"
           git push
