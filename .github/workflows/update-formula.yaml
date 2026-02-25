@@ -11,20 +11,55 @@ on:
 
 jobs:
   update:
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
 
-      - uses: astral-sh/setup-uv@eac588ad8def6316056a12d4907a9d4d84ff7a3b # v7.3.0
+      - uses: Homebrew/actions/setup-homebrew@master
 
-      - name: Regenerate formula
-        run: uvx --from homebrew-pypi-poet --with setuptools --with summon-claude poet -f summon-claude > Formula/summon-claude.rb
+      - name: Get latest PyPI info
+        id: pypi
+        run: |
+          INFO=$(curl -s https://pypi.org/pypi/summon-claude/json)
+          VERSION=$(echo "$INFO" | jq -r '.info.version')
+          SDIST_URL=$(echo "$INFO" | jq -r '.urls[] | select(.packagetype=="sdist") | .url')
+          SDIST_SHA=$(echo "$INFO" | jq -r '.urls[] | select(.packagetype=="sdist") | .digests.sha256')
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "url=$SDIST_URL" >> "$GITHUB_OUTPUT"
+          echo "sha256=$SDIST_SHA" >> "$GITHUB_OUTPUT"
 
-      - name: Homebrew audit
+      - name: Write formula skeleton
+        run: |
+          cat > Formula/summon-claude.rb << RUBY
+          class SummonClaude < Formula
+            include Language::Python::Virtualenv
+
+            desc "Bridge Claude Code sessions to Slack channels"
+            homepage "https://github.com/wgordon17/summon-claude"
+            url "${{ steps.pypi.outputs.url }}"
+            sha256 "${{ steps.pypi.outputs.sha256 }}"
+            license "MIT"
+
+            depends_on "python@3.13"
+
+            def install
+              virtualenv_install_with_resources
+            end
+
+            test do
+              assert_match "summon, version", shell_output("#{bin}/summon version")
+            end
+          end
+          RUBY
+
+      - name: Generate resource stanzas
         run: |
           brew tap wgordon17/summon .
-          brew audit --strict Formula/summon-claude.rb
+          brew update-python-resources summon-claude
+
+      - name: Homebrew audit
+        run: brew audit --strict Formula/summon-claude.rb
 
       - name: Commit and push
         run: |
@@ -35,6 +70,5 @@ jobs:
             echo "No changes to formula"
             exit 0
           fi
-          VERSION=$(uv run --with summon-claude python -c "from importlib.metadata import version; print(version('summon-claude'))")
-          git commit -m "Update summon-claude to ${VERSION}"
+          git commit -m "Update summon-claude to ${{ steps.pypi.outputs.version }}"
           git push
