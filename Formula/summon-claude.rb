@@ -8,6 +8,7 @@ class SummonClaude < Formula
   license "MIT"
 
   depends_on "python@3.13"
+  depends_on "rust" => :build
 
   resource "aiohappyeyeballs" do
     url "https://files.pythonhosted.org/packages/26/30/f84a107a9c4331c14b2b586036f40965c128aa4fee4dda5d3d51cb14ad54/aiohappyeyeballs-2.6.1.tar.gz"
