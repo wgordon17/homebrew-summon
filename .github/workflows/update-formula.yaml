@@ -10,73 +10,140 @@ on:
         required: false
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   update:
-    runs-on: ubuntu-latest
+    runs-on: macos-15
+    permissions:
+      contents: write
     timeout-minutes: 10
-    env:
-      HOMEBREW_NO_AUTO_UPDATE: 1
-      HOMEBREW_NO_INSTALL_CLEANUP: 1
+    outputs:
+      version: ${{ steps.pypi.outputs.version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
-      - name: Add Homebrew to PATH
-        run: echo "/home/linuxbrew/.linuxbrew/bin" >> "$GITHUB_PATH"
-
-      - name: Get latest PyPI info
+      - name: Get PyPI info
         id: pypi
+        env:
+          DISPATCH_VERSION: ${{ github.event.client_payload.version }}
+          MANUAL_VERSION: ${{ github.event.inputs.version }}
         run: |
-          INFO=$(curl -s https://pypi.org/pypi/summon-claude/json)
-          VERSION=$(echo "$INFO" | jq -r '.info.version')
-          SDIST_URL=$(echo "$INFO" | jq -r '.urls[] | select(.packagetype=="sdist") | .url')
-          SDIST_SHA=$(echo "$INFO" | jq -r '.urls[] | select(.packagetype=="sdist") | .digests.sha256')
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "url=$SDIST_URL" >> "$GITHUB_OUTPUT"
-          echo "sha256=$SDIST_SHA" >> "$GITHUB_OUTPUT"
+          EXPECTED="${DISPATCH_VERSION:-$MANUAL_VERSION}"
+          EXPECTED="${EXPECTED#v}"
+          .github/scripts/pypi-info.sh "$EXPECTED"
 
-      - name: Write formula skeleton
+      - name: Write formula from template
+        env:
+          PYPI_URL: ${{ steps.pypi.outputs.url }}
+          PYPI_SHA: ${{ steps.pypi.outputs.sha256 }}
         run: |
-          cat > Formula/summon-claude.rb << RUBY
-          class SummonClaude < Formula
-            include Language::Python::Virtualenv
+          sed -e "s|__URL__|$PYPI_URL|" -e "s|__SHA256__|$PYPI_SHA|" \
+            Formula/summon-claude.rb.template > Formula/summon-claude.rb
 
-            desc "Bridge Claude Code sessions to Slack channels"
-            homepage "https://github.com/wgordon17/summon-claude"
-            url "${{ steps.pypi.outputs.url }}"
-            sha256 "${{ steps.pypi.outputs.sha256 }}"
-            license "MIT"
-
-            depends_on "python@3.13"
-            depends_on "rust" => :build
-
-            def install
-              virtualenv_install_with_resources
-            end
-
-            test do
-              assert_match "summon, version", shell_output("#{bin}/summon version")
-            end
-          end
-          RUBY
-
-      - name: Tap and generate resources
+      - name: Generate Python resource blocks
         run: |
           brew tap wgordon17/summon .
           brew update-python-resources summon-claude
-          cp "$(brew formula summon-claude)" Formula/summon-claude.rb
           brew audit --strict summon-claude
 
-      - name: Commit and push
+      - name: Create GitHub Release for bottles
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          VERSION: ${{ steps.pypi.outputs.version }}
         run: |
-          git remote set-url origin "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git"
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add Formula/summon-claude.rb
-          if git diff --cached --quiet; then
-            echo "No changes to formula"
-            exit 0
-          fi
-          git commit -m "Update summon-claude to ${{ steps.pypi.outputs.version }}"
-          git push origin main
+          gh release view "v$VERSION" --repo "$REPO" 2>/dev/null || \
+            gh release create "v$VERSION" \
+              --title "v$VERSION" \
+              --notes "Bottles for summon-claude v$VERSION" \
+              --repo "$REPO"
+
+      - name: Commit and push
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          VERSION: ${{ steps.pypi.outputs.version }}
+        run: .github/scripts/commit-formula.sh "Update summon-claude to $VERSION"
+
+  build-bottle:
+    name: Build bottle (${{ matrix.os }})
+    needs: [update]
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: write
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-14, macos-15]
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Tap and install
+        run: |
+          brew tap wgordon17/summon
+          brew install --build-bottle summon-claude
+
+      - name: Build bottle
+        run: |
+          # --no-rebuild: first-time build (rebuild=0). On reruns,
+          # bottles are overwritten via --clobber on upload.
+          brew bottle --no-rebuild --json summon-claude
+
+      - name: Rename bottle tarball
+        run: |
+          shopt -s nullglob
+          # brew bottle outputs double-dash (summon-claude--X.Y.Z) — Homebrew
+          # expects single-dash in download URLs, so rename the tarball only.
+          for f in summon-claude--*.bottle.tar.gz; do
+            mv "$f" "${f/summon-claude--/summon-claude-}"
+          done
+
+      - name: Upload bottle to GH Release
+        env:
+          REPO: ${{ github.repository }}
+          VERSION: ${{ needs.update.outputs.version }}
+        run: |
+          for f in summon-claude-*.bottle.tar.gz; do
+            gh release upload "v$VERSION" "$f" --repo "$REPO" --clobber
+          done
+
+      - name: Upload bottle JSON as artifact
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: bottle-json-${{ matrix.os }}
+          path: summon-claude--*.bottle.json
+          if-no-files-found: error
+
+  update-bottle-block:
+    name: Insert bottle block
+    needs: [update, build-bottle]
+    if: "!cancelled() && needs.update.result == 'success'"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          ref: main
+
+      - name: Download bottle JSON artifacts
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          pattern: bottle-json-*
+          path: bottle-artifacts/
+
+      - name: Insert bottle block
+        env:
+          REPO: ${{ github.repository }}
+          VERSION: ${{ needs.update.outputs.version }}
+        run: .github/scripts/insert-bottle-block.sh bottle-artifacts/
+
+      - name: Commit and push
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          VERSION: ${{ needs.update.outputs.version }}
+        run: .github/scripts/commit-formula.sh "Add bottle block for summon-claude v$VERSION"
