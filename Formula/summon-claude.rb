@@ -3,17 +3,13 @@ class SummonClaude < Formula
 
   desc "Bridge Claude Code sessions to Slack channels"
   homepage "https://github.com/wgordon17/summon-claude"
-  url "https://files.pythonhosted.org/packages/0a/66/483e2d31ac0e264c73964c0ab5893af616c72c46b5b5b58e7dc8b44b39d6/summon_claude-0.1.0.tar.gz"
-  sha256 "79f6e31b809e1b1ee559dc1bc42c0c8033478ee861fbb02c03ec1da554e29950"
+  url "https://files.pythonhosted.org/packages/41/f4/700fbc7dee218c992bce34c6c1598a50c87dcc4ade0301447f18fa2891e9/summon_claude-0.1.1.tar.gz"
+  sha256 "f90aefcfe2759dc812242909ce7e020ef491bcae23c21d5950f1354a151671bb"
   license "MIT"
 
-  bottle do
-    root_url "https://github.com/wgordon17/homebrew-summon/releases/download/bottles"
-    sha256 cellar: :any, arm64_tahoe: "66cc50466de600f0305c2363ae08b82273947cda73221b32a84d1b257cf20175"
-  end
-
-  depends_on "python@3.13"
   depends_on "rust" => :build
+  depends_on "openssl@3"
+  depends_on "python@3.13"
 
   resource "aiohappyeyeballs" do
     url "https://files.pythonhosted.org/packages/26/30/f84a107a9c4331c14b2b586036f40965c128aa4fee4dda5d3d51cb14ad54/aiohappyeyeballs-2.6.1.tar.gz"
@@ -61,8 +57,8 @@ class SummonClaude < Formula
   end
 
   resource "claude-agent-sdk" do
-    url "https://files.pythonhosted.org/packages/a2/02/129412a3751f6719799d484f6029794d497bc2c22ca8998c7a2f2a47cc0e/claude_agent_sdk-0.1.43.tar.gz"
-    sha256 "611bbb8bf923455bba5e8bd1cc00f3ea382b6673fa62e73f88bdb7ef0def9222"
+    url "https://files.pythonhosted.org/packages/30/40/5661e10daf69ee5c864f82a1888cc33c9378b2d7f7d11db3c2360aef3a30/claude_agent_sdk-0.1.44.tar.gz"
+    sha256 "8629436e7af367a1cbc81aa2a58a93aa68b8b2e4e14b0c5be5ac3627bd462c1b"
   end
 
   resource "click" do
