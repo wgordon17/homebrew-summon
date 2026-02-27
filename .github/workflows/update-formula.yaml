@@ -40,6 +40,9 @@ jobs:
         run: |
           sed -e "s|__URL__|$PYPI_URL|" -e "s|__SHA256__|$PYPI_SHA|" \
             Formula/summon-claude.rb.template > Formula/summon-claude.rb
+          # Commit skeleton so brew tap (git-based) sees the new version
+          git add Formula/summon-claude.rb
+          git commit -m "formula skeleton for $PYPI_URL"
 
       - name: Generate Python resource blocks
         run: |
