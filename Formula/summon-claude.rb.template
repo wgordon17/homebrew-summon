@@ -7,9 +7,9 @@ class SummonClaude < Formula
   sha256 "__SHA256__"
   license "MIT"
 
+  depends_on "rust" => :build
   depends_on "openssl@3"
   depends_on "python@3.13"
-  depends_on "rust" => :build
 
   def install
     virtualenv_install_with_resources
