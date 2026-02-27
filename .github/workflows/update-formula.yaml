@@ -43,7 +43,11 @@ jobs:
 
       - name: Generate Python resource blocks
         run: |
-          brew tap wgordon17/summon .
+          # Symlink checkout into brew's tap directory so brew sees our
+          # working-tree formula directly (same approach as setup-homebrew).
+          TAPDIR="$(brew --repository)/Library/Taps/wgordon17/homebrew-summon"
+          mkdir -p "$(dirname "$TAPDIR")"
+          ln -s "$PWD" "$TAPDIR"
           brew update-python-resources summon-claude
           brew audit --strict summon-claude
 
