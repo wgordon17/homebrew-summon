@@ -17,7 +17,7 @@ found=0
 for json_file in "$ARTIFACT_DIR"/bottle-json-*/summon-claude-*.bottle.json; do
   [ -f "$json_file" ] || continue
   jq -r '
-    .["summon-claude"].bottle as $b |
+    to_entries[0].value.bottle as $b |
     ($b.cellar | if . == "any" or . == "any_skip_relocation" then ":" + . else "\"" + . + "\"" end) as $c |
     $b.tags | to_entries[] |
     "    sha256 cellar: \($c), \(.key): \"\(.value.sha256)\""
