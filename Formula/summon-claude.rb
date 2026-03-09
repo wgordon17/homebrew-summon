@@ -3,15 +3,9 @@ class SummonClaude < Formula
 
   desc "Bridge Claude Code sessions to Slack channels"
   homepage "https://github.com/wgordon17/summon-claude"
-  url "https://files.pythonhosted.org/packages/41/f4/700fbc7dee218c992bce34c6c1598a50c87dcc4ade0301447f18fa2891e9/summon_claude-0.1.1.tar.gz"
-  sha256 "f90aefcfe2759dc812242909ce7e020ef491bcae23c21d5950f1354a151671bb"
+  url "https://files.pythonhosted.org/packages/9e/56/afd87445b49f173fc73ce7dcbd5834f29dd6d2caed5d5aea4b55d0ee0043/summon_claude-0.2.0.tar.gz"
+  sha256 "0ad6936a4cc485f404802312a6a369e07c8cfef74c209cfafea4bcc40ad0cd26"
   license "MIT"
-
-  bottle do
-    root_url "https://github.com/wgordon17/homebrew-summon/releases/download/v0.1.1"
-    sha256 cellar: :any, arm64_sonoma: "6f4479aa01d7d40443ff7522d2b4618e8acb82bba73dcac2795d394174eb9458"
-    sha256 cellar: :any, arm64_sequoia: "2596ff218ed1945baa65c300a6f58327227406931c1aaeed827867e487fffa01"
-  end
 
   depends_on "rust" => :build
   depends_on "openssl@3"
@@ -63,8 +57,8 @@ class SummonClaude < Formula
   end
 
   resource "claude-agent-sdk" do
-    url "https://files.pythonhosted.org/packages/30/40/5661e10daf69ee5c864f82a1888cc33c9378b2d7f7d11db3c2360aef3a30/claude_agent_sdk-0.1.44.tar.gz"
-    sha256 "8629436e7af367a1cbc81aa2a58a93aa68b8b2e4e14b0c5be5ac3627bd462c1b"
+    url "https://files.pythonhosted.org/packages/29/86/52c75a8737d96524611b738fa649d4555eff361b9f8ae393557644fb15e9/claude_agent_sdk-0.1.39.tar.gz"
+    sha256 "dcf0ebd5a638c9a7d9f3af7640932a9212b2705b7056e4f08bd3968a865b4268"
   end
 
   resource "click" do
@@ -122,6 +116,11 @@ class SummonClaude < Formula
     sha256 "6aed02de03cba24efabcd600b30540140634fc06cfa603822d508d5361e9f799"
   end
 
+  resource "markdown-to-mrkdwn" do
+    url "https://files.pythonhosted.org/packages/17/8e/f2c62a88097425b0dba3a8699d13154b4c5888b989ffaf6419c10058b338/markdown_to_mrkdwn-0.3.1.tar.gz"
+    sha256 "25f5c095516f8ad956c88c5dab75493aadfaa02e51e3c84459490058a8ca840b"
+  end
+
   resource "mcp" do
     url "https://files.pythonhosted.org/packages/fc/6d/62e76bbb8144d6ed86e202b5edd8a4cb631e7c8130f3f4893c3f90262b10/mcp-1.26.0.tar.gz"
     sha256 "db6e2ef491eecc1a0d93711a76f28dec2e05999f93afd48795da1c1137142c66"
@@ -135,6 +134,11 @@ class SummonClaude < Formula
   resource "packaging" do
     url "https://files.pythonhosted.org/packages/65/ee/299d360cdc32edc7d2cf530f3accf79c4fca01e96ffc950d8a52213bd8e4/packaging-26.0.tar.gz"
     sha256 "00243ae351a257117b6a241061796684b084ed1c516a08c48a3f7e147a9d80b4"
+  end
+
+  resource "pick" do
+    url "https://files.pythonhosted.org/packages/b6/f9/450cc44b21190d99b86df3e59f7573d85f3ef2c4f7670ce4f65cb2def3b4/pick-2.6.0.tar.gz"
+    sha256 "f24434a845ae9265ebf7657fc224b9a203ac75aa576b568e061484a72e27be82"
   end
 
   resource "propcache" do
@@ -173,8 +177,8 @@ class SummonClaude < Formula
   end
 
   resource "python-dotenv" do
-    url "https://files.pythonhosted.org/packages/f0/26/19cadc79a718c5edbec86fd4919a6b6d3f681039a2f6d66d14be94e75fb9/python_dotenv-1.2.1.tar.gz"
-    sha256 "42667e897e16ab0d66954af0e60a9caa94f0fd4ecf3aaf6d2d260eec1aa36ad6"
+    url "https://files.pythonhosted.org/packages/82/ed/0301aeeac3e5353ef3d94b6ec08bbcabd04a72018415dcb29e588514bba8/python_dotenv-1.2.2.tar.gz"
+    sha256 "2c371a91fbd7ba082c2c1dc1f8bf89ca22564a087c2c287cd9b662adde799cf3"
   end
 
   resource "python-multipart" do
@@ -203,8 +207,8 @@ class SummonClaude < Formula
   end
 
   resource "sse-starlette" do
-    url "https://files.pythonhosted.org/packages/8b/8d/00d280c03ffd39aaee0e86ec81e2d3b9253036a0f93f51d10503adef0e65/sse_starlette-3.2.0.tar.gz"
-    sha256 "8127594edfb51abe44eac9c49e59b0b01f1039d0c7461c6fd91d4e03b70da422"
+    url "https://files.pythonhosted.org/packages/5a/9f/c3695c2d2d4ef70072c3a06992850498b01c6bc9be531950813716b426fa/sse_starlette-3.3.2.tar.gz"
+    sha256 "678fca55a1945c734d8472a6cad186a55ab02840b4f6786f5ee8770970579dcd"
   end
 
   resource "starlette" do
@@ -228,8 +232,8 @@ class SummonClaude < Formula
   end
 
   resource "yarl" do
-    url "https://files.pythonhosted.org/packages/57/63/0c6ebca57330cd313f6102b16dd57ffaf3ec4c83403dcb45dbd15c6f3ea1/yarl-1.22.0.tar.gz"
-    sha256 "bebf8557577d4401ba8bd9ff33906f1376c877aa78d1fe216ad01b4d6745af71"
+    url "https://files.pythonhosted.org/packages/23/6e/beb1beec874a72f23815c1434518bfc4ed2175065173fb138c3705f658d4/yarl-1.23.0.tar.gz"
+    sha256 "53b1ea6ca88ebd4420379c330aea57e258408dd0df9af0992e5de2078dc9f5d5"
   end
 
   def install
