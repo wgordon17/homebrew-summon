@@ -9,6 +9,11 @@ on:
         description: "Version to update to (leave empty for latest)"
         required: false
 
+env:
+  # PyPI packages whose sdists are broken (e.g. missing README.md).
+  # The prefer-wheels step swaps these to pure-Python wheels.
+  BROKEN_SDISTS: markdown-to-mrkdwn
+
 permissions:
   contents: read
 
@@ -49,6 +54,12 @@ jobs:
           mkdir -p "$(dirname "$TAPDIR")"
           ln -s "$PWD" "$TAPDIR"
           brew update-python-resources summon-claude
+
+      - name: Fix broken sdists
+        run: |
+          # shellcheck disable=SC2086
+          python3 .github/scripts/prefer-wheels.py Formula/summon-claude.rb \
+            $BROKEN_SDISTS
           brew audit --strict summon-claude
 
       - name: Create GitHub Release for bottles
