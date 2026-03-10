@@ -7,6 +7,12 @@ class SummonClaude < Formula
   sha256 "0ad6936a4cc485f404802312a6a369e07c8cfef74c209cfafea4bcc40ad0cd26"
   license "MIT"
 
+  bottle do
+    root_url "https://github.com/wgordon17/homebrew-summon/releases/download/v0.2.0"
+    sha256 cellar: :any, arm64_sonoma: "b79f878badaf29aaef4f27009dd1c44b98e5305f64b2594809d4eba4fab70b51"
+    sha256 cellar: :any, arm64_sequoia: "a12f4b50de3e9c3e2cab7f0f1d3ee1c38ea09ba750cf90ef905a8063de052061"
+  end
+
   depends_on "rust" => :build
   depends_on "openssl@3"
   depends_on "python@3.13"
