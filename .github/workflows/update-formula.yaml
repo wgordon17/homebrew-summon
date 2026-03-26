@@ -13,6 +13,10 @@ env:
   # PyPI packages whose sdists are broken (e.g. missing README.md).
   # The prefer-wheels step swaps these to pure-Python wheels.
   BROKEN_SDISTS: markdown-to-mrkdwn
+  # PyPI packages with no sdist at all (only platform-specific wheels).
+  # The prefer-wheels step resolves RESOURCE-ERROR comments left by
+  # brew update-python-resources --ignore-errors.
+  PLATFORM_WHEELS: playwright
 
 permissions:
   contents: read
@@ -53,13 +57,18 @@ jobs:
           TAPDIR="$(brew --repository)/Library/Taps/wgordon17/homebrew-summon"
           mkdir -p "$(dirname "$TAPDIR")"
           ln -s "$PWD" "$TAPDIR"
-          brew update-python-resources summon-claude
+          brew update-python-resources \
+            --extra-packages=workspace-mcp,playwright \
+            --ignore-errors \
+            summon-claude
 
-      - name: Fix broken sdists
+      - name: Fix broken sdists and platform-only packages
         run: |
           # shellcheck disable=SC2086
           python3 .github/scripts/prefer-wheels.py Formula/summon-claude.rb \
             $BROKEN_SDISTS
+          python3 .github/scripts/prefer-wheels.py --platform Formula/summon-claude.rb \
+            $PLATFORM_WHEELS
           brew audit --strict summon-claude
 
       - name: Create GitHub Release for bottles
